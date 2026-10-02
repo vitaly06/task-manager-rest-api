@@ -12,13 +12,19 @@ import (
 func main() {
 	cfg := config.NewConfig()
 
-	_, err := database.ConnectDB(cfg.DSN)
+	db, err := database.ConnectDB(cfg.DSN)
 
 	if err != nil {
-		log.Fatalf("[%s] Не удалось подключиться к БД", consts.Red("ERROR"))
+		log.Fatalf("[%s] Не удалось подключиться к БД\n", consts.Red("ERROR"))
+	}
+
+	if err := database.AutoMigrate(db); err != nil {
+		log.Fatalf("[%s] Не удалось выполнить автомиграцию\n", consts.Red("ERROR"))
 	}
 
 	app := fiber.New()
 
-	app.Listen(":" + cfg.Port)
+	if err := app.Listen(":" + cfg.Port); err != nil {
+		log.Fatalf("[%s] Не удалось запустить сервер\n", consts.Red("ERROR"))
+	}
 }
