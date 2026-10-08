@@ -34,10 +34,10 @@ func main() {
 	userR := repository.NewUserRepository(db)
 
 	// Auth
-	authS := service.NewAuthService(userR)
+	authS := service.NewAuthService(userR, cfg.JwtSecret)
 	authH := handler.NewAuthHandler(authS)
 
-	routes.AuthRoutes(api, authH)
+	routes.AuthRoutes(api, authH, cfg.JwtSecret)
 
 	if err := app.Listen(":" + cfg.Port); err != nil {
 		log.Fatalf("[%s] Не удалось запустить сервер\n", consts.Red("ERROR"))

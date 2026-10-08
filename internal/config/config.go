@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Port string
-	DSN  string
+	Port      string
+	DSN       string
+	JwtSecret string
 }
 
 func NewConfig() *Config {
@@ -18,8 +19,9 @@ func NewConfig() *Config {
 	}
 
 	return &Config{
-		Port: GetEnv("PORT", "3000"),
-		DSN:  GetEnv("DSN", "host=localhost user=postgres password=your_password dbname=name_db port=5432"),
+		Port:      GetEnv("PORT", "3000"),
+		DSN:       GetEnv("DSN", "host=localhost user=postgres password=your_password dbname=name_db port=5432"),
+		JwtSecret: GetEnv("JWT_SECRET", "XXXXXXXXXX"),
 	}
 }
 

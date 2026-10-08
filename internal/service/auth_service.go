@@ -12,16 +12,18 @@ import (
 )
 
 type AuthService struct {
-	userR *repository.UserRepository
+	userR     *repository.UserRepository
+	jwtSecret string
 }
 
 var EmailAlreadyExists = errors.New("Пользователь с данной почтой уже существует")
 var EmailNotRegisted = errors.New("Пользователь с данной почтой не зарегистрирован")
 var PasswordsNotMatch = errors.New("Пароли не совпадают")
 
-func NewAuthService(userR *repository.UserRepository) *AuthService {
+func NewAuthService(userR *repository.UserRepository, jwtSecret string) *AuthService {
 	return &AuthService{
-		userR: userR,
+		userR:     userR,
+		jwtSecret: jwtSecret,
 	}
 }
 
@@ -57,22 +59,28 @@ func (s *AuthService) SignUp(email, password string) error {
 	return nil
 }
 
-func (s *AuthService) SignIn(email, password string) error {
+func (s *AuthService) SignIn(email, password string) (string, error) {
 	checkUser, err := s.userR.GetByEmail(email)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return EmailNotRegisted
+			return "", EmailNotRegisted
 		}
 
-		return err
+		return "", err
 	}
 
 	if !ComparePasswords(password, checkUser.Password) {
-		return PasswordsNotMatch
+		return "", PasswordsNotMatch
 	}
 
-	return nil
+	token, err := GenerateJWT(checkUser.ID, s.jwtSecret)
+
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func hashPassword(password string) (string, error) {

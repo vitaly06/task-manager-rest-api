@@ -66,7 +66,7 @@ func (h *AuthHandler) SignIn(c fiber.Ctx) error {
 		})
 	}
 
-	err := h.authS.SignIn(req.Email, req.Password)
+	token, err := h.authS.SignIn(req.Email, req.Password)
 
 	if err != nil {
 		if errors.Is(err, service.PasswordsNotMatch) || errors.Is(err, service.EmailNotRegisted) {
@@ -82,7 +82,31 @@ func (h *AuthHandler) SignIn(c fiber.Ctx) error {
 		})
 	}
 
+	c.Cookie(&fiber.Cookie{
+		Name:     "access_token",
+		Value:    token,
+		Path:     "/",
+		MaxAge:   24 * 60 * 60,
+		HTTPOnly: true,
+		Secure:   false,
+		SameSite: "Lax",
+	})
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Успешная авторизация",
 	})
+}
+
+func (h *AuthHandler) Logout(c fiber.Ctx) error {
+	c.Cookie(&fiber.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HTTPOnly: true,
+		Secure:   false,
+		SameSite: "Lax",
+	})
+
+	return c.SendStatus(fiber.StatusNoContent)
 }
