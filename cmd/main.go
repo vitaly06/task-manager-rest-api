@@ -7,6 +7,10 @@ import (
 	"github.com/vitaly06/task-manager-rest-api/internal/config"
 	"github.com/vitaly06/task-manager-rest-api/internal/consts"
 	"github.com/vitaly06/task-manager-rest-api/internal/database"
+	"github.com/vitaly06/task-manager-rest-api/internal/handler"
+	"github.com/vitaly06/task-manager-rest-api/internal/repository"
+	"github.com/vitaly06/task-manager-rest-api/internal/routes"
+	"github.com/vitaly06/task-manager-rest-api/internal/service"
 )
 
 func main() {
@@ -23,6 +27,17 @@ func main() {
 	}
 
 	app := fiber.New()
+
+	api := app.Group("/api")
+
+	// User
+	userR := repository.NewUserRepository(db)
+
+	// Auth
+	authS := service.NewAuthService(userR)
+	authH := handler.NewAuthHandler(authS)
+
+	routes.AuthRoutes(api, authH)
 
 	if err := app.Listen(":" + cfg.Port); err != nil {
 		log.Fatalf("[%s] Не удалось запустить сервер\n", consts.Red("ERROR"))
