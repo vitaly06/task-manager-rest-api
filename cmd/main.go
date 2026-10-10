@@ -37,7 +37,13 @@ func main() {
 	authS := service.NewAuthService(userR, cfg.JwtSecret)
 	authH := handler.NewAuthHandler(authS)
 
+	// Task
+	taskR := repository.NewTaskRepository(db)
+	taskS := service.NewTaskService(taskR)
+	taskH := handler.NewTaskHandler(taskS)
+
 	routes.AuthRoutes(api, authH, cfg.JwtSecret)
+	routes.TaskRoutes(api, taskH, cfg.JwtSecret)
 
 	if err := app.Listen(":" + cfg.Port); err != nil {
 		log.Fatalf("[%s] Не удалось запустить сервер\n", consts.Red("ERROR"))
